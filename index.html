@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Martin Dedja - Web Developer</title>
+    <link rel="stylesheet" type="text/css" href="css/styles.css" />
+    <link rel="stylesheet" type="text/css" href="css/home.css" />
+    <link rel="stylesheet" type="text/css" href="css/header.css" />
+    <style>
+      #overlay-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: transparent;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <header id="header-container"></header>
+
+    <main>
+      <div id="overlay-container">
+        <section class="hero">
+          <div class="hero-content">
+            <h1>Welcome to My Portfolio</h1>
+            <p>Explore my projects and experiences</p>
+            <a href="./portfolio.html" class="cta-button">View Portfolio</a>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer>&copy; 2023 Martin Dedja</footer>
+
+    <script src="js/script.js"></script>
+    <script>
+      fetch("header.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById("header-container").innerHTML = data;
+        });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <script>
+      function sketch(p) {
+        let streams = [];
+        let symbolSize = 20;
+
+        p.setup = function () {
+          const canvas = p.createCanvas(window.innerWidth, window.innerHeight);
+          canvas.id("background");
+          p.background(0);
+
+          let x = 0;
+          for (let i = 0; i <= p.width / symbolSize; i++) {
+            let stream = new Stream();
+            stream.generateSymbols(x, p.random(-1000, 0));
+            streams.push(stream);
+            x += symbolSize;
+          }
+          p.textSize(symbolSize);
+        };
+
+        p.draw = function () {
+          p.background(0);
+
+          for (let stream of streams) {
+            stream.render();
+          }
+        };
+
+        class Symbol {
+          constructor(x, y, speed, first) {
+            this.x = x;
+            this.y = y;
+            this.speed = speed;
+            this.value;
+            this.switchInterval = p.floor(p.random(2, 20));
+            this.first = first;
+
+            this.setToRandomSymbol();
+          }
+
+          setToRandomSymbol() {
+            let charType = p.floor(p.random(0, 3));
+            if (p.frameCount % this.switchInterval == 0) {
+              if (charType == 1) {
+                this.value = String.fromCharCode(0x30a0 + p.random(0, 96));
+              } else {
+                this.value = p.random() > 0.5 ? "1" : "0";
+              }
+            }
+          }
+
+          rain() {
+            this.y = this.y >= p.height ? 0 : this.y + this.speed;
+          }
+        }
+
+        class Stream {
+          constructor() {
+            this.symbols = [];
+            this.totalSymbols = p.floor(p.random(5, 30));
+            this.speed = p.random(5, 20);
+
+            this.generateSymbols = function (x, y) {
+              let first = p.random() < 0.5;
+              for (let i = 0; i <= this.totalSymbols; i++) {
+                let symbol = new Symbol(x, y, this.speed, first);
+                symbol.setToRandomSymbol();
+                this.symbols.push(symbol);
+                y -= symbolSize;
+                first = false;
+              }
+            };
+
+            this.render = function () {
+              for (let symbol of this.symbols) {
+                if (symbol.first) {
+                  p.fill(140, 255, 170);
+                } else {
+                  p.fill(0, 255, 70);
+                }
+                p.text(symbol.value, symbol.x, symbol.y);
+                symbol.rain();
+                symbol.setToRandomSymbol();
+              }
+            };
+          }
+        }
+      }
+
+      new p5(sketch);
+    </script>
+  </body>
+</html>
